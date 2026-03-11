@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 
 fake = Faker()
 
-# ---- REALISTIC GENIUS BAR DATA ----
-
 DEVICE_TYPES = {
     "iPhone": ["iPhone 14", "iPhone 14 Pro", "iPhone 15", "iPhone 15 Pro",
                "iPhone 15 Pro Max", "iPhone 16", "iPhone 16 Pro",
@@ -47,8 +45,6 @@ TECHNICIANS = [
     {"id": "T005", "name": "Ashley Rivera", "role": "Technical Specialist"},
 ]
 
-# ---- GENERATE CASES ----
-
 def generate_cases(n=1000):
     cases = []
     start_date = datetime(2024, 1, 1)
@@ -57,13 +53,13 @@ def generate_cases(n=1000):
     for i in range(1, n + 1):
         device_type = random.choices(
             list(DEVICE_TYPES.keys()),
-            weights=[50, 25, 15, 7, 3]  # iPhones come in most
+            weights=[50, 25, 15, 7, 3]
         )[0]
         device_model = random.choice(DEVICE_TYPES[device_type])
 
         issue_category = random.choices(
             list(ISSUE_CATEGORIES.keys()),
-            weights=[25, 20, 30, 10, 10, 5]  # Software and Battery most common
+            weights=[25, 20, 30, 10, 10, 5]
         )[0]
         issue_description = random.choice(ISSUE_CATEGORIES[issue_category])
 
@@ -71,7 +67,12 @@ def generate_cases(n=1000):
             PRIORITY_LEVELS, weights=[50, 35, 15]
         )[0]
 
-        intake_date = fake.date_time_between(start_date=start_date, end_date=end_date)
+        base_date = fake.date_time_between(start_date=start_date, end_date=end_date)
+        day_weights = [6, 5, 4, 4, 5, 6, 9]  # Sun Mon Tue Wed Thu Fri Sat
+        target_day = random.choices(range(7), weights=day_weights)[0]
+        current_day = base_date.weekday() + 1
+        days_shift = (target_day - current_day) % 7
+        intake_date = base_date + timedelta(days=days_shift)
 
         resolution_hours = round(random.uniform(0.5, 72), 1)
 
@@ -101,8 +102,6 @@ def generate_cases(n=1000):
         })
 
     return cases
-
-# ---- SAVE TO DATABASE ----
 
 def save_to_database(cases):
     conn = sqlite3.connect("data/genius_bar.db")
@@ -141,8 +140,6 @@ def save_to_database(cases):
     conn.commit()
     conn.close()
     print(f"✅ {len(cases)} cases saved to data/genius_bar.db")
-
-# ---- RUN ----
 
 if __name__ == "__main__":
     print("Generating Genius Bar case data...")
